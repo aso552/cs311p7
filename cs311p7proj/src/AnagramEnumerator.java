@@ -1,9 +1,9 @@
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 public class AnagramEnumerator implements IAnagramEnumerator {
 
@@ -24,7 +24,7 @@ public class AnagramEnumerator implements IAnagramEnumerator {
 
 	private void enumterateAnagramsUnderEHelper(String whatsLeft,
 			String parent, Set<String> returnSet,
-			Dictionary.TreeNode dictPointer, Dictionary.TreeNode myParent) {
+			TreeNode dictPointer, TreeNode myParent) {
 		// Pruning strategy: Pass a tree node along. If the tree node is null,
 		// and this Whats left isnt done... just stop
 		if (whatsLeft.length() == 0 && dictPointer.getIsWord()) {
@@ -76,8 +76,8 @@ public class AnagramEnumerator implements IAnagramEnumerator {
 	}
 
 	private void generateSubwordsHelper(String whatsLeft, String parent,
-			Set<String> returnSet, Dictionary.TreeNode dictPointer,
-			Dictionary.TreeNode myParent) {
+			Set<String> returnSet, TreeNode dictPointer,
+			TreeNode myParent) {
 		// Pruning strategy: Pass a tree node along. If the tree node is null,
 		// and this Whats left isnt done... just stop
 
@@ -126,72 +126,183 @@ public class AnagramEnumerator implements IAnagramEnumerator {
 
 	@Override
 	public Set<Map<String, Integer>> enumerateAnagramsUnderBagE(String s) {
-		HashSet<Map<String, Integer>> ret = new HashSet<Map<String, Integer>>();
-		enumerateAnagramsUnderBagEHelper(s,s, new HashMap<String, Integer>(), ret, 0);
+		Set<Map<String, Integer>> ret = new HashSet<Map<String, Integer>>();
+		enumerateAnagramsUnderBagEHelper(s, s, new HashMap<String, Integer>(),
+				ret, 0);
 		return ret;
 	}
-	
-	private String cutOutSubWord(String removeFrom, String toRemove) throws Exception{
+
+	private String cutOutSubWord(String removeFrom, String toRemove)
+			throws Exception {
 		ArrayList<Character> piecesToRemove = new ArrayList<Character>();
 		String ret = new String();
-		if(removeFrom.length() < toRemove.length()){
+		if (removeFrom.length() < toRemove.length()) {
 			throw new Exception("cannot cut out subword!");
 		}
-		for(int i = 0 ; i < toRemove.length(); i++){
+		for (int i = 0; i < toRemove.length(); i++) {
 			piecesToRemove.add(toRemove.charAt(i));
 		}
-		for(int i = 0; i < removeFrom.length(); i++){
-			if(piecesToRemove.contains(removeFrom.charAt(i))){
-				//Skip .. dont add
+		for (int i = 0; i < removeFrom.length(); i++) {
+			if (piecesToRemove.contains(removeFrom.charAt(i))) {
+				// Skip .. dont add
 				piecesToRemove.remove(new Character(removeFrom.charAt(i)));
-				//Remove it.. its been used now
-			}else{
+				// Remove it.. its been used now
+			} else {
 				ret += removeFrom.charAt(i);
 			}
 		}
 		return ret;
 	}
 
-	private void enumerateAnagramsUnderBagEHelper(String targetDoNotChange, String whatsLeft, HashMap<String, Integer> parent, Set<Map<String, Integer>> ret, int runningTotal){
-		//Start at root word
-		//Generate all subwords
-		if(whatsLeft.length()  == 0 && runningTotal == targetDoNotChange.length()){
-//			System.out.println("Adding:{");
-//			for(String s: parent.keySet()){
-//				System.out.println(s);
-//			}
-//			System.out.println("}");
+	private void enumerateAnagramsUnderBagEHelper(String targetDoNotChange,
+			String whatsLeft, HashMap<String, Integer> parent,
+			Set<Map<String, Integer>> ret, int runningTotal) {
+		// Start at root word
+		// Generate all subwords
+		if (whatsLeft.length() == 0
+				&& runningTotal == targetDoNotChange.length()) {
 			ret.add(parent);
 			return;
-		}else{
-		Set<String> toIter = generateSubwords(whatsLeft);
-		for(String subWord : toIter){
-			//Do some pruning
-			if(runningTotal + subWord.length() <= targetDoNotChange.length()){
-				String moveMadeWhatsLeft = null;
-				try{
-				moveMadeWhatsLeft = cutOutSubWord(whatsLeft, subWord);
-				}catch(Exception e){
-					e.printStackTrace();
+		} else {
+			Set<String> toIter = generateSubwords(whatsLeft);
+			for (String subWord : toIter) {
+				// Do some pruning
+				if (runningTotal + subWord.length() <= targetDoNotChange
+						.length()) {
+					String moveMadeWhatsLeft = null;
+					try {
+						moveMadeWhatsLeft = cutOutSubWord(whatsLeft, subWord);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
+					HashMap<String, Integer> mapCopy = new HashMap<String, Integer>();
+					for (String s : parent.keySet()) {
+						mapCopy.put(s, parent.get(s));
+					}
+					// Make move
+					if (mapCopy.containsKey(subWord)) {
+						mapCopy.put(subWord,
+								mapCopy.get(subWord).intValue() + 1);
+					} else {
+						mapCopy.put(subWord, 1);
+					}
+					enumerateAnagramsUnderBagEHelper(targetDoNotChange,
+							moveMadeWhatsLeft, mapCopy, ret, runningTotal
+									+ subWord.length());
+
+				} else {
+					// Do nothing.. too long PRUNING
 				}
-				//Make move
-				if(parent.containsKey(subWord)){
-					parent.put(subWord, parent.get(subWord).intValue()+1);
-				}else{
-					parent.put(subWord, 1);
-				}
-				enumerateAnagramsUnderBagEHelper(targetDoNotChange, moveMadeWhatsLeft, parent, ret, runningTotal + subWord.length());
-				//Unmake move
-				if(parent.get(subWord) > 1){
-					parent.put(subWord, parent.get(subWord).intValue()-1);
-				}else{
-					parent.remove(subWord);
-				}
-				
-			}else{
-				//Do nothing.. too long PRUNING
 			}
-		}		
 		}
+	}
+
+	public static class TreeNode {
+
+		private TreeNode parent;
+		private Character data;
+		private boolean isWord;
+		private ArrayList<TreeNode> children;
+
+		public TreeNode(TreeNode parent, Character data) {
+			this.data = data;
+			this.parent = parent;
+			this.children = new ArrayList<TreeNode>();
+			this.isWord = false;
+		}
+
+		// Does not change toAdd's parent to this node!
+		public void addChild(TreeNode toAdd) {
+			this.children.add(toAdd);
+		}
+
+		public void setIsWord(boolean toSet) {
+			this.isWord = toSet;
+		}
+
+		public boolean getIsWord() {
+			return this.isWord;
+		}
+
+		public Character getData() {
+			return this.data;
+		}
+
+		public void setParent(TreeNode p) {
+			this.parent = p;
+		}
+
+		public TreeNode getParent() {
+			return this.parent;
+		}
+
+		public ArrayList<TreeNode> getChildren() {
+			return this.children;
+		}
+
+		public TreeNode getChildContaining(char gData) {
+			for (TreeNode t : children) {
+				if (t.getData() == gData) {
+					return t;
+				}
+			}
+			// Not found
+			return null;
+		}
+
+	}
+
+	public static class Dictionary {
+
+		private TreeNode root;
+
+		public void initializeDictionary(Set<String> s) {
+
+			this.root = new TreeNode(null, null);
+			Iterator<String> iter = s.iterator();
+			// For every word in s
+			while (iter.hasNext()) {
+				String toExamine = iter.next();
+				// Start from root
+				TreeNode current = root;
+				for (int i = 0; i < toExamine.length(); i++) {
+					TreeNode possibleNext = current
+							.getChildContaining(toExamine.charAt(i));
+					if (possibleNext == null) {
+						TreeNode gonnaAdd = new TreeNode(current,
+								toExamine.charAt(i));
+						current.getChildren().add(gonnaAdd);
+						gonnaAdd.setParent(current);
+						current = gonnaAdd;
+					} else {
+						current = possibleNext;
+					}
+				}
+				current.setIsWord(true);
+				// General alg, keep adding nodes in order as children (if they
+				// dont exist)
+				// Once you hit the end of a word, set the last node's isWord =
+				// true;
+			}
+		}
+
+		public void printDictionary(TreeNode current, String upTillNow) {
+			if (current.getIsWord()) {
+				System.out.println(upTillNow + current.getData());
+			}
+			for (TreeNode t : current.getChildren()) {
+				if (current.getData() != null) {
+					printDictionary(t, upTillNow + current.getData());
+				} else {
+					printDictionary(t, upTillNow);
+				}
+			}
+		}
+
+		public TreeNode getRoot() {
+			return this.root;
+		}
+
 	}
 }
