@@ -2,6 +2,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -19,14 +20,13 @@ public class Tester {
 		}
 		ae.initialize(dict);
 		
-		Set<String> toIter = ae.enumerateAnagramsUnderE("elvis");
-		Iterator<String> iter = toIter.iterator();
+		Set<Map<String, Integer>> toIter = ae.enumerateAnagramsUnderBagE("cat");
+		
+		Iterator<Map<String, Integer>> iter = toIter.iterator();
 		while(iter.hasNext()){
-			System.out.println(iter.next());
-		}
-		
-		
-		
+		System.out.println(iter.next());
+	}
+			
 	}
 
 }

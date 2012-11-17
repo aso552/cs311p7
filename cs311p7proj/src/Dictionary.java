@@ -2,10 +2,14 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
 
-public class DictionaryInitializer{
+public class Dictionary{
 	
-	public static TreeNode initializeDictionary(Set<String> s){
-		TreeNode root  = new TreeNode(null, '~');
+	private TreeNode root;
+	
+	
+	public void initializeDictionary(Set<String> s){
+
+		this.root  = new TreeNode(null, null);
 		Iterator<String> iter = s.iterator();
 		//For every word in s
 		while(iter.hasNext()){
@@ -16,27 +20,45 @@ public class DictionaryInitializer{
 				TreeNode possibleNext = current.getChildContaining(toExamine.charAt(i));
 				if(possibleNext == null){
 					TreeNode gonnaAdd = new TreeNode(current, toExamine.charAt(i));
+					current.getChildren().add(gonnaAdd);
+					gonnaAdd.setParent(current);
 					current = gonnaAdd;
 				}else{
 					current = possibleNext;
 				}
 			}
-			current.setIsWord(true);
+			current.setIsWord(true);			
 			//General alg, keep adding nodes in order as children (if they dont exist)
 			//Once you hit the end of a word, set the last node's isWord = true;
 		}
-		return root;
+	}
+	
+	public void printDictionary(TreeNode current, String upTillNow){
+		if(current.getIsWord()){
+			System.out.println(upTillNow+current.getData());
+		}
+		for(TreeNode t : current.getChildren()){
+			if(current.getData() != null){
+			printDictionary(t, upTillNow+current.getData());
+			}else{
+			printDictionary(t, upTillNow);
+			}
+		}
+	}
+	
+	public TreeNode getRoot(){
+		return this.root;
 	}
 	
 	
 	public static class TreeNode{
 		
 		private TreeNode parent;
-		private char data;
+		private Character data;
 		private boolean isWord;
 		private ArrayList<TreeNode> children;
 		
-		public TreeNode(TreeNode parent, char data){
+		public TreeNode(TreeNode parent, Character data){
 			this.data = data;
 			this.parent = parent;
 			this.children = new ArrayList<TreeNode>();
@@ -52,8 +74,24 @@ public class DictionaryInitializer{
 			this.isWord = toSet;
 		}
 		
-		public char getData(){
+		public boolean getIsWord(){
+			return this.isWord;
+		}
+		
+		public Character getData(){
 			return this.data;
+		}
+		
+		public void setParent(TreeNode p){
+			this.parent = p;
+		}
+		
+		public TreeNode getParent(){
+			return this.parent;
+		}
+		
+		public ArrayList<TreeNode> getChildren(){
+			return this.children;
 		}
 		
 		public TreeNode getChildContaining(char gData){
@@ -65,6 +103,8 @@ public class DictionaryInitializer{
 			//Not found
 			return null;
 		}
+
+
 	
 	}
 
