@@ -19,15 +19,22 @@ public class Tester {
 		}
 		ae.initialize(dict);
 
-		Set<Map<String, Integer>> toIter = ae.enumerateAnagramsUnderBagE("situation");
-
+		Set<Map<String, Integer>> toIter = ae.enumerateAnagramsUnderBagE("cat");
 		Iterator<Map<String, Integer>> iter = toIter.iterator();
+		
+		
+//		Set<String> toIter = ae.enumerateAnagramsUnderE("cat");
+//		Iterator<String> iter = toIter.iterator();
+		
 		while (iter.hasNext()) {
 			System.out.print("{ ");
 			for(String toPrint : iter.next().keySet()){
 				System.out.print(" " +  toPrint + " ");
 			}
 			System.out.print("} \n");
+			
+			
+//			System.out.println(iter.next());
 
 			
 		}
